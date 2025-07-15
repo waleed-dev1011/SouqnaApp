@@ -1,35 +1,94 @@
-import React from 'react';
-import {View, FlatList, TouchableOpacity, StatusBar, Image} from 'react-native';
+import React, {useState} from 'react';
+import {
+  View,
+  FlatList,
+  TouchableOpacity,
+  StatusBar,
+  ActivityIndicator,
+} from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import Regular from '../../../typography/RegularText';
 import CategoryHeader from '../../../components/Headers/CategoryHeader';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {ForwardSVG} from '../../../assets/svg';
 import styles from '../AdvertiseAll/style';
+import {fetchBuyerProducts} from '../../../api/apiServices';
+import i18n from '../../../i18n/i18n';
+import {t} from 'i18next';
 
 const SubCategoryMain = () => {
   const route = useRoute();
   const {category, subcategories, categoryId} = route.params;
   const navigation = useNavigation();
+  const [loading, setLoading] = useState(false);
 
-  const handleSubcategoryPress = subcategory => {
-    console.log(`Advertise ${subcategory.name} clicked`);
-    navigation.navigate('Products', {
-      categoryId: categoryId,
-      id: subcategory.id,
-      name: subcategory.name,
-    });
+  const getLocalizedName = item =>
+    i18n.language === 'ar' ? item.ar_name || item.name : item.name;
+
+  const localizedCategory =
+    typeof category === 'object' ? getLocalizedName(category) : category;
+
+  const handleSubcategoryPress = async subcategory => {
+    const isAllCategory = subcategory.id === null;
+
+    if (isAllCategory) {
+      try {
+        setLoading(true);
+        const filters = {
+          category_id: categoryId,
+        };
+
+        const response = await fetchBuyerProducts(filters);
+
+        if (response?.data?.length > 0) {
+          // const parsedProducts = response.data.filter(
+          //   p =>
+          //     p.category?.id === categoryId &&
+          //     p.category?.name?.toLowerCase() ===
+          //       (category.name || category).toLowerCase(),
+          // );
+          const parsedProducts = response.data.filter(
+            p => p.category?.id === categoryId,
+          );
+
+          console.log('PARSED PRODUCTS: ', parsedProducts);
+          navigation.navigate('Products', {
+            categoryId,
+            id: null,
+            name: `${t('all')} ${localizedCategory}`,
+            category,
+            initialProducts: parsedProducts,
+          });
+        } else {
+          console.log('No products found for this category.');
+        }
+      } catch (err) {
+        console.error('Failed to fetch products for full category:', err);
+      } finally {
+        setTimeout(() => setLoading(false), 500);
+      }
+    } else {
+      navigation.navigate('Products', {
+        categoryId,
+        id: subcategory.id,
+        name: getLocalizedName(subcategory),
+        category,
+      });
+    }
   };
 
   const handleBack = () => {
     navigation.goBack();
   };
+
   const renderSubCategoryItem = ({item}) => (
     <TouchableOpacity
       style={styles.subCategoryItem}
       onPress={() => handleSubcategoryPress(item)}>
       <View style={styles.titleContainer}>
-        <Regular style={styles.subCategoryText}>{item.name}</Regular>
+        <Regular style={styles.subCategoryText}>
+          {getLocalizedName(item)}
+        </Regular>
       </View>
       <ForwardSVG width={26} height={26} />
     </TouchableOpacity>
@@ -38,18 +97,44 @@ const SubCategoryMain = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      <CategoryHeader title={category} onBack={handleBack} />
+      <CategoryHeader title={localizedCategory} onBack={handleBack} />
       <View style={styles.headerContainer}>
-        <Regular style={styles.header}>All {category}</Regular>
+        <Regular style={styles.header}>
+          {t('all')} {localizedCategory}
+        </Regular>
       </View>
-      <View style={styles.content}>
-        <FlatList
-          data={subcategories}
-          showsVerticalScrollIndicator={false}
-          keyExtractor={item => item.id}
-          renderItem={renderSubCategoryItem}
-        />
-      </View>
+
+      {loading ? (
+        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+          <ActivityIndicator size="large" color="#000" />
+        </View>
+      ) : (
+        <View style={styles.content}>
+          <FlatList
+            data={subcategories}
+            showsVerticalScrollIndicator={false}
+            keyExtractor={item => item.id}
+            renderItem={renderSubCategoryItem}
+            ListHeaderComponent={() => (
+              <TouchableOpacity
+                style={styles.subCategoryItem}
+                onPress={() =>
+                  handleSubcategoryPress({
+                    id: null,
+                    name: `${t('all')} ${localizedCategory}`,
+                  })
+                }>
+                <View style={styles.titleContainer}>
+                  <Regular style={styles.subCategoryText}>
+                    {t('all')} {localizedCategory}
+                  </Regular>
+                </View>
+                <ForwardSVG width={26} height={26} />
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+      )}
     </SafeAreaView>
   );
 };

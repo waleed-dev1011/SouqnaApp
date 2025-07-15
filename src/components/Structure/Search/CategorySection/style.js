@@ -6,21 +6,15 @@ const styles = StyleSheet.create({
   categoryContainer: {
     marginTop: mvs(10),
     marginHorizontal: mvs(5),
-    // paddingTop: mvs(10),
-    // marginBottom: mvs(10),
-    flexDirection: 'row',
-    // backgroundColor: colors.white,
+    flexDirection: 'column',
     justifyContent: 'space-evenly',
   },
   categoryItem: {
     alignItems: 'center',
-    // left: mvs(30),
     justifyContent: 'center',
     width: mvs(75),
-    // marginBottom: mvs(10),
   },
   IconContainer: {
-    // padding: 10,
     justifyContent: 'center',
     alignItems: 'center',
     width: mvs(55),
@@ -35,15 +29,64 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-evenly',
   },
-  categoryText: {
-    marginTop: mvs(8),
-    fontSize: mvs(13),
-    fontWeight: '400',
-    color: colors.black,
-    textAlign: 'center',
-    flexWrap: 'wrap',
-    width: '100%',
-  },
+  // categoryText: {
+  //   marginTop: mvs(8),
+  //   fontSize: mvs(13),
+  //   fontWeight: '400',
+  //   color: colors.black,
+  //   textAlign: 'center',
+  //   flexWrap: 'wrap',
+  //   width: '100%',
+  // },
+
+
+
+row: {
+  flexDirection: 'row',
+  justifyContent: 'space-around',
+  // marginBottom: mvs(30), // reduced slightly
+},
+row1: {
+  flexDirection: 'row',
+  justifyContent: 'space-around',
+  marginBottom: mvs(30), // reduced slightly
+},
+
+bigCard: {
+  alignItems: 'center',
+  width: '45%',
+},
+
+smallCard: {
+  alignItems: 'center',
+  width: '28%',
+},
+
+bigIcon: {
+  width: 50,
+  height: 50,
+  marginBottom: 8,
+  resizeMode: 'contain',
+    borderRadius: 50 / 2,
+  backgroundColor: colors.lightorange,
+},
+
+smallIcon: {
+  width: 40,
+  height: 40,
+  marginBottom: 6,
+  resizeMode: 'contain',
+    borderRadius: 45 / 2,
+  backgroundColor: colors.lightorange,
+},
+
+categoryText: {
+  fontSize: 14,
+  fontWeight: '500',
+  textAlign: 'center',
+},
+
+
 });
 
 export default styles;

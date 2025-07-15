@@ -9,15 +9,18 @@ import {
   FlatList,
   Linking,
   Dimensions,
+  Alert,
 } from 'react-native';
-import {CloseSvg} from '../../assets/svg';
+import {CloseSvg, LanguageSVG} from '../../assets/svg';
 import {colors} from '../../util/color';
 import Regular from '../../typography/RegularText';
 import {mvs} from '../../util/metrices';
 import dummyData from '../../util/dummyData';
 import {useNavigation} from '@react-navigation/native';
 import HelpModal from './HelpModal';
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
+import i18n from '../../i18n/i18n';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const AddModal = ({visible, onClose, title, message}) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -44,10 +47,10 @@ const AddModal = ({visible, onClose, title, message}) => {
   });
 
   const handleRegister = () => {
-    navigation.replace('Register');
+    navigation.navigate('Register');
   };
   const handleLogin = () => {
-    navigation.replace('Login');
+    navigation.navigate('Login');
   };
 
   const viewabilityConfig = {
@@ -59,6 +62,25 @@ const AddModal = ({visible, onClose, title, message}) => {
 
   const closeHelp = () => {
     setShowHelp(false);
+  };
+  const toggleLanguage = async () => {
+    const newLang = i18n.language === 'en' ? 'ar' : 'en';
+    const isArabic = newLang === 'ar';
+
+    try {
+      await AsyncStorage.setItem('appLanguage', newLang); // Save selected language
+
+      // const shouldForceRTL = I18nManager.isRTL !== isArabic;
+
+      // if (shouldForceRTL) {
+      //   I18nManager.allowRTL(isArabic);
+      //   I18nManager.forceRTL(isArabic);
+      // }
+
+      i18n.changeLanguage(newLang).then(() => {});
+    } catch (error) {
+      console.error('Language toggle error:', error);
+    }
   };
 
   const openUrl = url => {
@@ -73,27 +95,39 @@ const AddModal = ({visible, onClose, title, message}) => {
       onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
         <View style={styles.modalContainer}>
+        <View style={{flex: 1}}>
           <View style={styles.headerSection}>
             <TouchableOpacity onPress={onClose}>
               <CloseSvg width={mvs(24)} height={mvs(24)} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={openHelp}>
-              <Text style={styles.helpText}>{t('Help')}</Text>
-            </TouchableOpacity>
+            <View style={{flexDirection: 'column', alignItems: 'flex-end'}}>
+              <TouchableOpacity onPress={openHelp}>
+                <Text style={styles.helpText}>{t('Help')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={toggleLanguage}
+                style={{flexDirection: 'row'}}>
+                <LanguageSVG height={24} width={24} />
+                <Text style={[styles.helpText, {fontSize: 16, marginLeft: 5}]}>
+                  {i18n.language === 'en' ? 'Arabic' : 'English'}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
+          
 
-          <View style={styles.logoAndTitleContainer}>
+          {/* <View style={styles.logoAndTitleContainer}> */}
             {/* <SouqnaLogo width={40} height={40} /> */}
-            <Image
+            {/* <Image
               source={require('../../assets/img/logo1.png')}
               style={styles.logo}
             />
             <Text style={styles.title}>Souqna</Text>
-          </View>
+          </View> */}
 
           <Text style={styles.message}>{message}</Text>
 
-          <View style={styles.carouselSection}>
+          {/* <View style={styles.carouselSection}>
             <FlatList
               data={paginationImages}
               renderItem={renderItem}
@@ -111,10 +145,17 @@ const AddModal = ({visible, onClose, title, message}) => {
               onViewableItemsChanged={onViewableItemsChanged.current}
               viewabilityConfig={viewabilityConfig}
             />
-          </View>
+          </View> */}
+          <View style={styles.singleImageContainer}>
+  <Image
+    source={require('../../assets/img/logo1.png')}
+    style={styles.image}
+  />
+</View>
 
+</View>
           <View style={styles.footerSection}>
-            <View style={styles.pagination}>
+            {/* <View style={styles.pagination}>
               {paginationImages.map((_, index) => (
                 <View
                   key={index}
@@ -124,7 +165,7 @@ const AddModal = ({visible, onClose, title, message}) => {
                   ]}
                 />
               ))}
-            </View>
+            </View> */}
             <TouchableOpacity
               style={styles.closeButton}
               onPress={handleRegister}>
@@ -144,7 +185,7 @@ const AddModal = ({visible, onClose, title, message}) => {
                 }>
                 <Text style={styles.termsLink}> {t('ourTermsApplyPart3')}</Text>
               </TouchableOpacity>{' '}
-               {t('ourTermsApplyPart2')}{' '}
+              {t('ourTermsApplyPart2')}{' '}
               <TouchableOpacity
                 onPress={() =>
                   openUrl(
@@ -164,20 +205,27 @@ const AddModal = ({visible, onClose, title, message}) => {
 };
 
 const styles = StyleSheet.create({
+  singleImageContainer: {
+  justifyContent: 'center',
+  alignItems: 'center',
+  marginBottom: mvs(20),
+},
+
   modalOverlay: {
     flex: 1,
     justifyContent: 'flex-start',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   logo: {
-    width: 45,
-    height: 45,
+    width: 70,
+    height: 70,
   },
   modalContainer: {
     backgroundColor: colors.white,
     paddingTop: mvs(30),
     paddingHorizontal: mvs(20),
     flex: 1,
+    justifyContent: 'space-between',
   },
   // Header Section (0.2 flex)
   headerSection: {
@@ -191,10 +239,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: mvs(20),
+    // marginBottom: mvs(20),
   },
   title: {
-    fontSize: mvs(28),
+    fontSize: 35,
     fontWeight: 'bold',
     color: colors.green,
     marginLeft: mvs(10),
@@ -203,7 +251,7 @@ const styles = StyleSheet.create({
     fontSize: mvs(16),
     color: colors.black,
     textAlign: 'center',
-    marginBottom: mvs(20),
+    marginBottom: '20%',
   },
   helpText: {
     color: colors.green,
@@ -223,19 +271,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: mvs(40),
   },
-  image: {
-    width: mvs(373),
-    height: mvs(250),
-    resizeMode: 'contain',
-    borderRadius: mvs(10),
-  },
+image: {
+  width: '100%',
+  height: mvs(350), // Increase this for a taller image
+  resizeMode: 'cover',
+  
+  borderRadius: mvs(10),
+},
+
   infoText: {
     textAlign: 'center',
-    marginTop: mvs(15),
+    marginBottom: mvs(25),
     fontSize: mvs(16),
     marginRight: mvs(20),
     paddingHorizontal: mvs(10), // prevents text from touching screen edges
-    maxWidth: '80%',
+    maxWidth: '100%',
   },
   pagination: {
     flexDirection: 'row',

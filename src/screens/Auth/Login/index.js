@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useRef, useState} from 'react';
 import {
   View,
   ToastAndroid,
@@ -7,29 +7,26 @@ import {
   ActivityIndicator,
   StatusBar,
   Animated,
-  Modal,
-  TouchableOpacity,
-  Easing,
   TouchableWithoutFeedback,
   Keyboard,
+  Image,
 } from 'react-native';
-import { useDispatch } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import {useDispatch} from 'react-redux';
+import {useNavigation} from '@react-navigation/native';
 import Regular from '../../../typography/RegularText';
 import styles from './styles';
-import { MyButton } from '../../../components/atoms/InputFields/MyButton';
-import { setRole, setTokens, setUser } from '../../../redux/slices/userSlice';
-import { EYESVG, SouqnaLogo } from '../../../assets/svg';
+import {MyButton} from '../../../components/atoms/InputFields/MyButton';
+import {setRole, setTokens, setUser} from '../../../redux/slices/userSlice';
+import {EYESVG, SouqnaLogo} from '../../../assets/svg';
 import PrimaryPasswordInput from '../../../components/atoms/InputFields/PrimaryPasswordInput';
 import Bold from '../../../typography/BoldText';
 import Header from '../../../components/Headers/Header';
-import { loginUser } from '../../../api/authServices';
-import { colors } from '../../../util/color';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { showSnackbar } from '../../../redux/slices/snackbarSlice';
-import { useTranslation } from 'react-i18next';
+import {loginUser} from '../../../api/authServices';
+import {colors} from '../../../util/color';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {showSnackbar} from '../../../redux/slices/snackbarSlice';
+import {useTranslation} from 'react-i18next';
 import dayjs from 'dayjs';
-import { getAccessTokenExpiry } from '../../../api/apiServices';
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
@@ -40,29 +37,27 @@ const LoginScreen = () => {
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showRoleSelection, setShowRoleSelection] = useState(false);
-  const { t } = useTranslation();
+  // const [showRoleSelection, setShowRoleSelection] = useState(false);
+  const {t} = useTranslation();
 
   // Add animation value
   const slideAnim = useRef(new Animated.Value(1000)).current;
-
 
   const TokenExpiry = () => {
     return dayjs().add(45, 'minute').format('YYYY-MM-DD HH:mm:ss');
   };
 
-
   // Animate modal in when `showRoleModal` is true
-  useEffect(() => {
-    if (showRoleSelection) {
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 400,
-        easing: Easing.out(Easing.exp),
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [showRoleSelection]);
+  // useEffect(() => {
+  //   if (showRoleSelection) {
+  //     Animated.timing(slideAnim, {
+  //       toValue: 0,
+  //       duration: 400,
+  //       easing: Easing.out(Easing.exp),
+  //       useNativeDriver: true,
+  //     }).start();
+  //   }
+  // }, [showRoleSelection]);
 
   const handleLogin = async () => {
     if (!isEmailValid(email)) {
@@ -103,23 +98,25 @@ const LoginScreen = () => {
           }),
         );
 
-
-        dispatch(setTokens({
-          accessToken: user.token,
-          refreshToken: user.refreshToken,
-          accessTokenExpiry: user.tokenExpire,
-        }));
+        dispatch(
+          setTokens({
+            accessToken: user.token,
+            refreshToken: user.refreshToken,
+            accessTokenExpiry: user.tokenExpire,
+          }),
+        );
         console.log('✅ Dispatched setTokens');
 
         if (user.role === 4) {
           // Show role selection modal if both
-          setShowRoleSelection(true);
+          // setShowRoleSelection(true);
           dispatch(
-            showSnackbar(
-              user.role === 3
-                ? t('buyerLoginSuccess')
-                : t('sellerLoginSuccess'),
+            showSnackbar(t('buyerLoginSuccess')
+              // user.role === 3
+                // ? t('buyerLoginSuccess')
+                // : t('sellerLoginSuccess'),
             ),
+            navigation.replace('MainTabs'),
           );
         } else {
           dispatch(
@@ -171,6 +168,9 @@ const LoginScreen = () => {
   const navigateToRegister = () => {
     navigation.navigate('Register');
   };
+  const navigateToForget = () => {
+    navigation.navigate('ForgotPassword');
+  };
 
   const handleClearEmail = () => {
     setEmail('');
@@ -181,12 +181,12 @@ const LoginScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <View style={{ flex: 1 }}>
+        <View style={{flex: 1}}>
           <StatusBar barStyle="dark-content" />
           <Header title={t('Help')} />
 
           <View style={styles.HeaderContainer}>
-            <SouqnaLogo width={50} height={50} />
+            <Image source={require('../../../assets/img/logo1.png')} style={{height: 70, width:70}}/>
             <Bold style={styles.title}>Souqna</Bold>
           </View>
 
@@ -207,12 +207,16 @@ const LoginScreen = () => {
               secureTextEntry={securePassword}
               error={passwordError}
             />
+
+            <Regular style={styles.ForgetPassword} onPress={navigateToForget}>
+              {t('Forget Password?')}
+            </Regular>
           </View>
           <View style={styles.buttonContainer}>
             <MyButton
               title={
                 loading ? (
-                  <ActivityIndicator size="large" color={colors.green} />
+                  <ActivityIndicator size="large" color={colors.lightgreen} />
                 ) : (
                   t('Login')
                 )
@@ -221,38 +225,38 @@ const LoginScreen = () => {
               disabled={loading || !isFormValid}
             />
             <Regular style={styles.registerText}>
-              Don’t have an account?{' '}
+              {t('Don’t have an account?')}{' '}
               <Regular style={styles.registerLink} onPress={navigateToRegister}>
                 {t('Register')}
               </Regular>
             </Regular>
           </View>
 
-          {showRoleSelection && (
+          {/* {showRoleSelection && (
             <Modal transparent visible={showRoleSelection} animationType="none">
               <View style={styles.modalOverlay}>
                 <Animated.View
                   style={[
                     styles.modalContainer,
-                    { transform: [{ translateY: slideAnim }] },
+                    {transform: [{translateY: slideAnim}]},
                   ]}>
-                  <Bold style={styles.modalTitle}>Choose Role</Bold>
+                  <Bold style={styles.modalTitle}>{t('chooseRole')}</Bold>
                   <Regular style={styles.modalText}>
-                    Do you want to login as a Buyer or Seller?
+                    {t('loginBuyerOrSeller')}
                   </Regular>
 
                   <View
-                    style={{ flexDirection: 'row', justifyContent: 'center' }}>
+                    style={{flexDirection: 'row', justifyContent: 'center'}}>
                     <TouchableOpacity
                       style={styles.modalButton}
                       onPress={() => {
                         dispatch(setRole(3)); // Buyer
                         console.log('Role set as 3 (Buyer)');
-                        setShowRoleSelection(false);
+                        // setShowRoleSelection(false);
                         navigation.replace('MainTabs');
                       }}>
                       <Regular style={styles.modalButtonText}>
-                        Login as Buyer
+                        {t('loginAsBuyerButton')}
                       </Regular>
                     </TouchableOpacity>
 
@@ -261,18 +265,18 @@ const LoginScreen = () => {
                       onPress={() => {
                         dispatch(setRole(2)); // Seller
                         console.log('Role set as 2 (Seller)');
-                        setShowRoleSelection(false);
+                        // setShowRoleSelection(false);
                         navigation.replace('MainTabs');
                       }}>
                       <Regular style={styles.modalButtonText}>
-                        Login as Seller
+                        {t('loginAsSellerButton')}
                       </Regular>
                     </TouchableOpacity>
                   </View>
                 </Animated.View>
               </View>
             </Modal>
-          )}
+          )} */}
         </View>
       </TouchableWithoutFeedback>
       {/* <Snackbar

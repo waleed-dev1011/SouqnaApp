@@ -1,11 +1,10 @@
 /* eslint-disable react-native/no-inline-styles */
 
-import React, {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import {
   RefreshControl,
   ScrollView,
   StatusBar,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import SearchHeader from '../../../components/Headers/SearchHeader';
@@ -27,8 +26,6 @@ import API, {
 import {setVerificationStatus} from '../../../redux/slices/userSlice';
 import LogoHeader from '../../../components/Structure/Search/Header/LogoHeader';
 import {Snackbar} from 'react-native-paper';
-import {colors} from '../../../util/color';
-import {MapMarkerSVG} from '../../../assets/svg';
 import BannerSlider from '../../../components/atoms/BannerSlider';
 import ProductDashboard from '../../../components/atoms/Dashboard';
 
@@ -41,6 +38,7 @@ const SearchScreen = () => {
   const [loading, setLoading] = useState(false);
   const [allProducts, setAllProducts] = useState([]);
   const [allRecommendedProducts, setAllRecommendedProducts] = useState([]);
+const dashboardRefreshRef = useRef(null);
 
   const [isEndOfResults, setIsEndOfResults] = useState(false);
   const {token, verificationStatus, role} = useSelector(state => state.user);
@@ -245,19 +243,24 @@ const SearchScreen = () => {
   };
 
   const onRefresh = async () => {
+      console.log('Refreshing...');
+
     setRefreshing(true);
     try {
+          dashboardRefreshRef.current?.(); // 👈 refresh dashboard
+
       setCategoriesLoading(true);
       const categoriesResponse = await fetchCategories(token);
       if (categoriesResponse?.success) {
         setApiCategories(categoriesResponse.data);
       }
       setCategoriesLoading(false);
-
+ 
       const productsResponse = await fetchBuyerProducts(token, {}, role);
       if (productsResponse?.success) {
         const products = productsResponse.data;
         setAllRecommendedProducts(products.slice(0, 6));
+        setAllProducts(products);
         setApiProducts(products);
         setIsEndOfResults(false);
       }
@@ -265,6 +268,8 @@ const SearchScreen = () => {
       console.error('Error refreshing data:', error);
     } finally {
       setRefreshing(false);
+          console.log('Refresh complete');
+
     }
   };
 
@@ -276,17 +281,16 @@ const SearchScreen = () => {
         <LogoHeader />
       </View>
 
-      {/* Map */}
-      {role !== 2 && (
+      {/* {role !== 2 && (
         <TouchableOpacity
           onPress={() => navigation.navigate('Map', {allProducts})}
           // onPress={() => setModalVisible(true)}
           style={styles.mapContainer}>
           <MapMarkerSVG width={35} height={35} fill={colors.white} />
         </TouchableOpacity>
-      )}
+      )} */}
       <ScrollView
-        contentContainerStyle={{backgroundColor: '#fbfbfb'}}
+        contentContainerStyle={{backgroundColor: '#fbfbfb', flexGrow: 1}}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }>
@@ -305,7 +309,7 @@ const SearchScreen = () => {
         <CategorySection categories={apiCategories} />
 
         {/* {!isModalVisible && hasFetchedVerification && <BannerSlider />} */}
-        {!token ? null : role === 3 ? <BannerSlider /> : <ProductDashboard />}
+        {!token ? null : role === 3 ? <BannerSlider /> : <ProductDashboard onRefresh={onRefresh}/>}
 
         {/* <BannerSlider /> */}
 

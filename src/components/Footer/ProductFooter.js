@@ -11,8 +11,7 @@ import {mvs} from '../../util/metrices';
 import {colors} from '../../util/color';
 import {CallSVG, ChatSVG2, TrashSVG, UpdateSVG} from '../../assets/svg';
 import {useSelector} from 'react-redux';
-import { useTranslation } from 'react-i18next';
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
 const ProductFooter = ({
   onBuyPress,
@@ -39,11 +38,6 @@ const ProductFooter = ({
     }
   };
 
-  const handleBuyPress = () => {
-    setShowBuy(true);
-    onBuyPress && onBuyPress();
-  };
-
   // Declare buttons based on role
   let buttons = [];
 
@@ -53,14 +47,14 @@ const ProductFooter = ({
         key: 'chat',
         onPress: onChatPress,
         loading: loadingChat,
-        text: 'Chat with Seller',
+        text: t('chatWithSeller'),
         Icon: ChatSVG2,
       },
       {
         key: 'call',
         onPress: handleCallPress,
         loading: loadingCall,
-        text: 'Call Seller',
+        text: t('callSeller'),
         Icon: CallSVG,
       },
     );
@@ -80,7 +74,7 @@ const ProductFooter = ({
         onPress: handleDeletePress,
         loading: loadingDelete,
         text: t('deleteProduct'),
-        Icon: TrashSVG,
+        Icon: TrashSVG ,
       },
     );
   }
@@ -98,7 +92,7 @@ const ProductFooter = ({
             onPress={onPress}>
             <Icon width={24} height={24} />
             {loading ? (
-              <ActivityIndicator size="small" color={colors.green} />
+              <ActivityIndicator size="small" color={colors.lightgreen} />
             ) : (
               <Text style={[styles.buttonText]}>{text}</Text>
             )}
@@ -141,7 +135,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.lightgreen,
   },
   buttonText: {
-    color: colors.green,
+    color: colors.white,
     fontSize: mvs(16),
     marginLeft: mvs(10),
     fontWeight: 'bold',

@@ -1,13 +1,28 @@
-import { View, Text, Dimensions, StyleSheet } from 'react-native'
-import React from 'react'
-import { mvs } from '../../../util/metrices';
-import { colors } from '../../../util/color';
+import {View, Text, Dimensions, StyleSheet} from 'react-native';
+import React from 'react';
+import {mvs} from '../../../util/metrices';
+import {colors} from '../../../util/color';
 
 const {width} = Dimensions.get('window');
 // const imageWidth = width * 0.4;
 const cardWidth = (width - mvs(45)) / 2;
 const styles = StyleSheet.create({
+  
   container: {flex: 1, backgroundColor: '#fff'},
+
+    mapContainer: {
+    position: 'absolute',
+    width: mvs(55),
+    height: mvs(55),
+    backgroundColor: '#008e91',
+    opacity: 0.9,
+    bottom: 15,
+    right: 15,
+    zIndex: 10,
+    borderRadius: mvs(27),
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   list: {padding: 10},
   card: {
     marginBottom: 15,
@@ -64,11 +79,14 @@ const styles = StyleSheet.create({
     marginBottom: mvs(13),
     backgroundColor: colors.white,
     borderRadius: mvs(10),
-    elevation: 3, // Add this for Android shadow
-    shadowColor: '#000', // iOS shadow
-    shadowOffset: {width: 0, height: 2},
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
 
   recommendedImage: {
@@ -132,5 +150,39 @@ const styles = StyleSheet.create({
   },
 });
 
+export default styles;
 
-export default styles
+export const adjustModalStyles = StyleSheet.create({
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end', // Bottom sheet style
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    padding: 20,
+    minHeight: 300,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: -2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  closeText: {
+    color: '#007AFF',
+    fontSize: 16,
+    marginTop: 15,
+    textAlign: 'center',
+  },
+});

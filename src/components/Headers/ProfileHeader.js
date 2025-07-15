@@ -155,10 +155,10 @@ export default function ProfileHeader({OnPressLogout, onRoleSwitch}) {
           {activeRole === '2' || activeRole === 2
             ? t('Seller Account')
             : activeRole === '3' || activeRole === 3
-            ? t('Buyer Account')
+            ? t('buyeraccount')
             : isSellerOn
             ? t('Seller Account')
-            : t('Buyer Account')}
+            : t('buyeraccount')}
         </Text>
         <TouchableOpacity onPress={toggleSellerMode} activeOpacity={0.8}>
           {isSellerOn ? (
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
     color: colors.green,
   },
   sellerContainer: {
-    backgroundColor: '#ADBD6E',
+    backgroundColor: '#008e91',
     flexDirection: 'row',
     paddingHorizontal: mvs(8),
     borderRadius: mvs(10),
@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
     right: 20,
   },
   sellerText: {
-    color: colors.black,
+    color: colors.white,
     fontWeight: 'bold',
     fontSize: mvs(20),
   },

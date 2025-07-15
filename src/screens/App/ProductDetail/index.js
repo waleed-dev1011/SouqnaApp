@@ -53,6 +53,7 @@ const ProductDetail = () => {
     token,
     role,
     verificationStatus,
+    phoneNo,
     id: userId,
   } = useSelector(state => state.user);
   const route = useRoute();
@@ -274,7 +275,7 @@ const ProductDetail = () => {
       lat: product.lat,
       long: product.long,
       condition: product.condition, // assuming it's 1 or 2
-      custom_fields: product.custom_fields,
+      fields: product.fields,
       currency: product.currency,
       contactInfo: product.contactInfo,
     });
@@ -327,7 +328,7 @@ const ProductDetail = () => {
   return (
     <SafeAreaView style={styles.container}>
       {loading || !product ? (
-        <Loader width={mvs(160)} height={mvs(160)} />
+        <Loader width={mvs(250)} height={mvs(250)} />
       ) : (
         <>
           {console.log('Product currency:', product.currency)}
@@ -402,7 +403,7 @@ const ProductDetail = () => {
               <Bold style={{fontSize: mvs(22), marginHorizontal: mvs(10)}}>
                 {t('details')}
               </Bold>
-              <DetailsTable ProductData={product.custom_fields} />
+              <DetailsTable ProductData={product.fields} />
             </View>
             <View style={styles.descriptionContainer}>
               <Bold style={{fontSize: mvs(22)}}>{t('Description')}</Bold>
@@ -448,7 +449,7 @@ const ProductDetail = () => {
             onChatPress={handleChatPress}
             handleUpdatePress={handleUpdatePress}
             handleDeletePress={handleDeletePress}
-            sellerPhone="971501234567"
+            sellerPhone={product.contactInfo}
             productOwnerId={product.seller?.id}
             // customProductLink={customProductLink}
           />

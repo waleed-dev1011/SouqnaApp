@@ -12,10 +12,10 @@ import {
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   Keyboard,
+  Platform,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {CommonActions, useNavigation, useRoute} from '@react-navigation/native';
-import axios from 'axios';
 import {useSelector} from 'react-redux';
 // import {launchImageLibrary} from 'react-native-image-picker';
 // import ImagePicker from 'react-native-image-crop-picker';
@@ -35,8 +35,47 @@ import PhotoManipulator from 'react-native-photo-manipulator';
 import ImageResizer from 'react-native-image-resizer';
 import CategoryFields from './CategoryFields';
 import EnhancedLocationSelector from '../../../../components/Location/EnhancedLocationSelector';
+import i18n from '../../../../i18n/i18n';
 // import EnhancedCategoryFields from './CategoryFields';
-
+const BRANDS = [
+  'Audi',
+  'BAIC',
+  'BMW',
+  'Changan',
+  'Chevrolet',
+  'Daewoo',
+  'Daihatsu',
+  'DFSK',
+  'Dongfeng',
+  'FAW',
+  'Geely',
+  'Haval',
+  'Hino',
+  'Honda',
+  'Hyundai',
+  'Isuzu',
+  'JAC',
+  'Kia',
+  'Land Rover',
+  'Lexus',
+  'Master Motors',
+  'Mazda',
+  'Mercedes-Benz',
+  'MG',
+  'Mitsubishi',
+  'Nissan',
+  'Peugeot',
+  'Prince',
+  'Proton',
+  'Range Rover',
+  'Renault',
+  'Subaru',
+  'Suzuki',
+  'Tesla',
+  'Toyota',
+  'United Motors',
+  'Volkswagen',
+];
 const CreateProduct = () => {
   const route = useRoute();
   const {
@@ -46,34 +85,38 @@ const CreateProduct = () => {
     category,
     categoryImage,
   } = route.params;
-  const {token} = useSelector(state => state.user);
+  const {token, phoneNo} = useSelector(state => state.user);
   const navigation = useNavigation();
-  const {t} = useTranslation();
+
+  const [brandModalVisible, setBrandModalVisible] = useState(false);
+  // const isArabic = i18n.language === 'ar'; // useTranslation should be imported and initialized
+  const {t, i18n} = useTranslation();
+  console.log('Current Language:', i18n.language);
 
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     price: '',
     stock: '',
-    discount: '',
-    specialOffer: '',
+    // discount: '',
+    // specialOffer: '',
     images: [],
     location: '',
     lat: '',
     long: '',
-    contactInfo: '', // Additional field
-    negotiable: '', // Additional field
+    contactInfo: phoneNo,
+    negotiable: '',
     currency: '',
-    custom_fields: [],
+    fields: [],
   });
 
   const [loading, setLoading] = useState(false);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [selectedCondition, setSelectedCondition] = useState('');
-  const [categories, setCategories] = useState([]); // State to store fetched categories
-  const [categoryFields, setCategoryFields] = useState([]); // State to store category fields
-
+  const [categories, setCategories] = useState([]);
+  const [categoryFields, setCategoryFields] = useState([]);
+  console.log('{stored phone no:}', phoneNo);
   // const conditionValue =
   //   selectedCondition === 'Yes' ? 1 : selectedCondition === 'No' ? 2 : null;
 
@@ -89,51 +132,6 @@ const CreateProduct = () => {
   //   };
   // }, []);
 
-  // const handleChooseImages = async () => {
-  //   try {
-  //     const selectedImages = await ImagePicker.openPicker({
-  //       multiple: true,
-  //       mediaType: 'photo',
-  //     });
-
-  //     // Manually crop each selected image
-  //     const croppedImages = await Promise.all(
-  //       selectedImages.map(async image => {
-  //         const cropped = await ImagePicker.openCropper({
-  //           path: image.path,
-  //           width: 1024, // landscape width
-  //           height: 800, // landscape height
-  //           cropping: true,
-  //           freeStyleCropEnabled: true,
-  //           cropperToolbarTitle: 'Crop Image',
-  //           cropperCircleOverlay: false,
-  //           cropperStatusBarColor: '#ffffff',
-  //           cropperToolbarColor: '#ffffff',
-  //           cropperToolbarWidgetColor: '#000000',
-  //         });
-
-  //         return {
-  //           uri: cropped.path,
-  //           fileName: cropped.filename || cropped.path.split('/').pop(),
-  //           type: cropped.mime,
-  //           fileSize: cropped.size,
-  //         };
-  //       }),
-  //     );
-
-  //     setFormData(prev => ({
-  //       ...prev,
-  //       images: [...prev.images, ...croppedImages],
-  //     }));
-  //   } catch (error) {
-  //     if (error.code !== 'E_PICKER_CANCELLED') {
-  //       console.log('Image selection error:', error);
-  //       setSnackbarMessage('Failed to pick image.');
-  //       setSnackbarVisible(true);
-  //     }
-  //   }
-  // };
-
   const getImageSize = uri =>
     new Promise((resolve, reject) => {
       Image.getSize(
@@ -147,7 +145,7 @@ const CreateProduct = () => {
     try {
       const result = await launchImageLibrary({
         mediaType: 'photo',
-        selectionLimit: 0, // allow multiple images
+        selectionLimit: 0,
       });
 
       if (result.didCancel) return;
@@ -246,6 +244,7 @@ const CreateProduct = () => {
 
   const submitProduct = async () => {
     console.log('SUBMIT BUTTON PRESSED');
+
     const data = new FormData();
     data.append('name', formData.name);
     data.append('description', formData.description);
@@ -254,7 +253,7 @@ const CreateProduct = () => {
     data.append('categoryID', categoryId);
     data.append('subCategoryID', subCategoryId);
 
-    // Prepare custom_fields array
+    // Prepare fields array
     const customFieldsArray = categoryFields.map(field => ({
       name: field.name,
       value: formData[field.name],
@@ -276,11 +275,11 @@ const CreateProduct = () => {
       });
     }
     console.log('FORMDATA TILL NOW : ', data);
-    data.append('custom_fields', JSON.stringify(customFieldsArray));
+    data.append('fields', JSON.stringify(customFieldsArray));
 
     data.append('stock', formData.stock);
-    data.append('discount', formData.discount);
-    data.append('specialOffer', formData.specialOffer);
+    // data.append('discount', formData.discount);
+    // data.append('specialOffer', formData.specialOffer);
     data.append('location', formData.location);
     data.append('lat', formData.lat);
     data.append('long', formData.long);
@@ -309,12 +308,12 @@ const CreateProduct = () => {
           location: '',
           lat: '',
           long: '',
-          discount: '',
-          specialOffer: '',
+          // discount: '',
+          // specialOffer: '',
           contactInfo: '', // Reset additional field
           negotiable: '',
           currency: '',
-          custom_fields: [],
+          fields: [],
         });
 
         navigation.dispatch(
@@ -436,7 +435,7 @@ const CreateProduct = () => {
   return (
     <SafeAreaView style={{flex: 1}}>
       <StatusBar barStyle="dark-content" />
-      <MainHeader title={t('Post Your Ad')} showBackIcon={true} />
+      <MainHeader title={t('titleProduct')} showBackIcon={true} />
       <KeyboardAvoidingView
         style={{flex: 1}}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -622,10 +621,10 @@ const CreateProduct = () => {
 
             <View style={styles.sectionContainer}>
               <View style={styles.fieldContainer}>
-                <Text style={styles.sectionTitle}>{t('Contact Info')}</Text>
+                <Text style={styles.sectionTitle}>{t('contactInfo')}</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder={t('Contact Info')}
+                  placeholder={t('contactInfo')}
                   placeholderTextColor={colors.grey}
                   keyboardType="numeric"
                   value={formData.contactInfo}
@@ -635,8 +634,8 @@ const CreateProduct = () => {
             </View>
             <View style={styles.sectionContainer}>
               <Text style={styles.sectionTitle}>
-                {t('Negotiable')}
-                <Text style={{color: colors.red}}>*</Text>
+                {t('negotiable')}
+                {/* <Text style={{color: colors.red}}>*</Text> */}
               </Text>
 
               <View style={styles.radioContainer}>
@@ -655,7 +654,7 @@ const CreateProduct = () => {
                       )}
                     </View>
                   </View>
-                  <Text style={styles.radioText}>{t('Yes')}</Text>
+                  <Text style={styles.radioText}>{t('yes')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -672,17 +671,17 @@ const CreateProduct = () => {
                       )}
                     </View>
                   </View>
-                  <Text style={styles.radioText}>{t('No')}</Text>
+                  <Text style={styles.radioText}>{t('no')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
 
             {/* Discount Section */}
-            <View style={styles.sectionContainer}>
+            {/* <View style={styles.sectionContainer}>
               <Text style={styles.sectionTitle}>
-                {t('discount')}
-                <Text style={{color: colors.red}}>*</Text>
-              </Text>
+                {t('discount')} */}
+                {/* <Text style={{color: colors.red}}>*</Text> */}
+              {/* </Text>
               <TextInput
                 style={styles.input}
                 placeholder={t('discountPlaceholder')}
@@ -691,14 +690,14 @@ const CreateProduct = () => {
                 value={formData.discount}
                 onChangeText={text => handleInputChange('discount', text)}
               />
-            </View>
+            </View> */}
 
             {/* Special Offer Section */}
-            <View style={styles.sectionContainer}>
+            {/* <View style={styles.sectionContainer}>
               <Text style={styles.sectionTitle}>
-                {t('specialOffer')}
+                {t('specialOffer')} */}
                 {/* <Text style={{color: colors.red}}>*</Text> */}
-              </Text>
+              {/* </Text>
               <TextInput
                 style={styles.input}
                 placeholder={t('specialOfferPlaceholder')}
@@ -706,13 +705,13 @@ const CreateProduct = () => {
                 value={formData.specialOffer}
                 onChangeText={text => handleInputChange('specialOffer', text)}
               />
-            </View>
+            </View> */}
 
             {/* Stock Section */}
             <View style={styles.sectionContainer}>
               <Text style={styles.sectionTitle}>
                 {t('availableStock')}
-                <Text style={{color: colors.red}}>*</Text>
+                {/* <Text style={{color: colors.red}}>*</Text> */}
               </Text>
               <TextInput
                 style={styles.input}
@@ -733,14 +732,14 @@ const CreateProduct = () => {
             />
 
             <MyButton
-              title={loading ? t('submitting') : t('Submit Ad')}
+              title={loading ? t('Posting') : t('Posted')}
               style={styles.submitButton}
               onPress={submitProduct}
               disabled={loading}>
               {loading ? (
                 <ActivityIndicator color={colors.green} />
               ) : (
-                <Text style={styles.submitButtonText}>{t('Submit Ad')}</Text>
+                <Text style={styles.submitButtonText}>{t('Post Ad')}</Text>
               )}
             </MyButton>
           </ScrollView>
